@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+ <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>
+<body>
+	<p id="input" style="display:none"></p>
+	<pre id="output"></pre>
+</body>
+
+<script>
+/* Code by @Zro716 ( https://scratch.mit.edu/users/Zro716/ )
+ * Challenge by @EncloCreations at https://scratch.mit.edu/discuss/topic/169806/
+ *
+ * Work in progress. No solution to be found yet.
+ */
+
+function GetGrabDaStuffsPls() {
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET","https://scratch.mit.edu/discuss/topic/169806/",true);
+    xhr.responseType = "document";
+    xhr.onload = function() {
+        if (xhr.status == 200) {
+            console.log("deez stuffs, i got em");
+            var thingy = xhr.responseXML.getElementsByClassName("post_body_html")[0].getElementsByClassName("bb-small")[0].innerHTML;
+            document.getElementById("input").innerHTML = thingy;
+            var stuffz = StuffToArray(thingy);
+            var cout = document.getElementById("output");
+            cout.innerHTML = "Base-16\tBase-10\tBase-2 (20 bits)<br>"
+                           + "-------\t-------\t----------------<br>";
+            for (var i = 0; i < stuffz.length; i++)
+                cout.innerHTML += "" + stuffz[i] + "\t" + ~~stuffz[i] + "\t" + IntToBinary(stuffz[i],20) + "<br>";
+        } else console.log("sorry, i could not get grab da stuffs");
+    };
+    xhr.send();
+}
+
+function StuffToArray(stuff) {
+    for (var i = stuff.length - 1,temp = "", arr = [];i > -1;){
+      temp = "" + stuff[i--] + temp;
+      if (""+temp[0]+temp[1] == "0x") arr.unshift(temp),temp="";
+    }
+    return arr;
+}
+
+function IntToBinary(num,bits) {
+    num = ~~num;
+    var bin = "";
+    while (num || bits) {
+        bin = "" + (num % 2) + bin;
+        num = ~~(num / 2);
+        bits--;
+    }
+    return bin;
+}
+
+GetGrabDaStuffsPls();
+</script>
+</html>
