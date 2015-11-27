@@ -1,6 +1,5 @@
 # at-challenges
-A repository for things relevant to challenges on the Advanced Topics forum.
-
-Advanced Topics forum: https://scratch.mit.edu/discuss/31/
+A repository for all things relevant to the [Advanced Topics]([https://scratch.mit.edu/discuss/31/) forum.
+Includes challenges, userscripts, coding experiments and cool stuff.
 
 All ATers welcome to contribute.
