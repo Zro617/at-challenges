@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+</head>
+<body>
+<p id="input" style="display:block"></p>
+<p id="output" style="display:block"></p>
+<script>
+
+function GetRidOfDatHtmlPoop(html) {
+  var e = document.createElement('textarea');
+  e.innerHTML = html;
+  return e.value;
+}
+
+function CrackDaCodeBruh(code,missing) {
+    var chars = "abcdefghijklm nopqrstuvwxyz][\\|;:\"',~`+=_-*&^%$#@0987654321)(}{<>/!?.";
+	for (var str="",i=chars.length-missing;i<code.length;i++){str+=chars[code.indexOf(code[i])];}
+	return str;
+}
+
+function GetGrabDaStuffsPls() {
+  var xhr = new XMLHttpRequest();
+  xhr.open("GET","https://scratch.mit.edu/discuss/topic/170278/",true);
+  xhr.responseType = "document";
+  xhr.onload = function() {
+    if (xhr.status == 200) {
+	  var thingy = xhr.responseXML.getElementsByClassName("post_body_html")[0].getElementsByTagName("blockquote")[0].innerHTML;
+	  thingy = thingy.replace('<br>','');
+	  document.getElementById("input").innerHTML = thingy;
+	  document.getElementById("output").innerHTML = CrackDaCodeBruh(GetRidOfDatHtmlPoop(thingy),4);
+	} else {
+	  document.getElementById("input").innerHTML = "Could not retrieve data.";
+	}
+  };
+  xhr.send();
+}
+
+GetGrabDaStuffsPls();
+</script>
+</body>
+</html>
