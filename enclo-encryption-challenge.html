@@ -4,45 +4,84 @@
  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 </head>
 <body>
-	<p id="input" style="display:none"></p>
-	<pre id="output"></pre>
+	<div>Encrypted message:
+		<p id="input"></p>
+	</div>
+	<div>Key for message:
+		<p id="key"></p>
+	</div>
+	<div>Message after key:
+		<p id="after-key"></p>
+	</div>
+	<div>Decoded message:
+		<pre id="output"></pre>
+	</div>
 </body>
 
 <script>
 /* Code by @Zro716 ( https://scratch.mit.edu/users/Zro716/ )
  * Challenge by @EncloCreations at https://scratch.mit.edu/discuss/topic/169806/
- *
- * Work in progress. No solution to be found yet.
  */
 
-function GetGrabDaStuffsPls() {
-    var xhr = new XMLHttpRequest();
-    xhr.open("GET","https://scratch.mit.edu/discuss/topic/169806/",true);
-    xhr.responseType = "document";
-    xhr.onload = function() {
-        if (xhr.status == 200) {
-            console.log("deez stuffs, i got em");
-            var thingy = xhr.responseXML.getElementsByClassName("post_body_html")[0].getElementsByClassName("bb-small")[0].innerHTML;
-            document.getElementById("input").innerHTML = thingy;
-            var stuffz = StuffToArray(thingy);
-            var cout = document.getElementById("output");
-            cout.innerHTML = "Base-16\tBase-10\tBase-2 (20 bits)<br>"
-                           + "-------\t-------\t----------------<br>";
-            for (var i = 0; i < stuffz.length; i++)
-                cout.innerHTML += "" + stuffz[i] + "\t" + ~~stuffz[i] + "\t" + IntToBinary(stuffz[i],20) + "<br>";
-        } else console.log("sorry, i could not get grab da stuffs");
-    };
-    xhr.send();
-}
-
 function StuffToArray(stuff) {
-    for (var i = stuff.length - 1,temp = "", arr = [];i > -1;){
-      temp = "" + stuff[i--] + temp;
-      if (""+temp[0]+temp[1] == "0x") arr.unshift(temp),temp="";
+    for (var i = stuff.length - 1, temp = "", arr = []; i > -1;) {
+        temp = "" + stuff[i--] + temp;
+        if ("" + temp[0] + temp[1] == "0x") arr.unshift(temp), temp = "";
     }
     return arr;
 }
 
+function doSomeHackyThings(msg, key) {
+    document.getElementById("input").innerHTML = msg;
+    document.getElementById("key").innerHTML = key;
+
+    var chars = "\n !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
+    var decoded = "";
+    msg = StuffToArray(msg);
+    while (msg.length > key.length) msg.pop();
+    for (var i = 0; i < msg.length; i++) {
+		msg[i] = "" + ~~msg[i]; // coerce hexadecimal to decimal
+        while (msg[i].length < 6) msg[i] = "" + 0 + msg[i]; // prepend zeroes to make length = 6
+    }
+	console.log(msg); // after decimal conversion
+	for (var i = 0; i < msg.length; i++) { msg[i] = msg[i].substring(2 * (key[i] - 1), 2 * key[i]); } // get pair of digits from the key
+	console.log(msg); // after using key
+	for (var i = 0; i < msg.length; i++) { decoded += chars[~~msg[i]]; } // build decoded message from chars
+	
+	document.getElementById("after-key").innerHTML = msg.join();
+    document.getElementById("output").innerHTML = decoded;
+}
+
+function ajax(type, url, async, callback) {
+    var xhr = new XMLHttpRequest();
+    xhr.open(type, url, async);
+    if (async) xhr.responseType = "document";
+    xhr.onload = function () {
+        if (xhr.status == 200) callback(xhr.responseXML);
+        else console.log(xhr.statusText);
+    };
+    xhr.send();
+}
+
+function GetGrabDaStuffsPls() {
+    var thingy, key;
+    // get message
+    ajax("GET","https://scratch.mit.edu/discuss/topic/169806/", true,
+
+    function (dom) {
+        thingy = dom.getElementsByClassName("post_body_html")[0].getElementsByClassName("bb-small")[0].innerHTML;
+        if (thingy && key) doSomeHackyThings(thingy, key);
+    });
+    // get key
+    ajax("GET", "https://scratch.mit.edu/discuss/topic/169806/?page=2", true,
+
+    function (dom) {
+        key = dom.getElementById("p1628095").getElementsByClassName("postright")[0].innerHTML.match(/[123]{10,}/)[0];
+        if (thingy && key) doSomeHackyThings(thingy, key);
+    });
+}
+
+/*
 function IntToBinary(num,bits) {
     num = ~~num;
     var bin = "";
@@ -53,7 +92,7 @@ function IntToBinary(num,bits) {
     }
     return bin;
 }
-
+*/
 GetGrabDaStuffsPls();
 </script>
 </html>
