@@ -4,54 +4,72 @@
  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 </head>
 <body>
-	<div>Encrypted message:
-		<p id="input"></p>
+	<h1>EncloCreations "Challenge": Encoder &amp; Decoder</h1>
+	<h2>Written in JS by <a href="https://scratch.mit.edu/users/Zro716">Zro716</a>(<a href="https://github.com/Zro617/">Zro617</a>)</h2>
+	<div class="decrypt">Decrypted message:
+	<br><textarea id="decrypted" rows="5" cols="100" placeholder="Put your secret message here..."></textarea>
+	<br><button id="encrypt" onclick="encrypt()">Encrypt</button>
 	</div>
-	<div>Key for message:
-		<p id="key"></p>
+	<div =class="key">Key for message:
+	<br><textarea id="key" rows="5" cols="100" placeholder="A key will be generated here for encrypting."></textarea>
+	<br>
 	</div>
-	<div>Message after key:
-		<p id="after-key"></p>
+	<div class="encrypt">Encrypted message:
+	<br><textarea id="encrypted" rows="5" cols="100" placeholder="Put an encrypted message here..."></textarea>
+	<br><button id="decrypt" onclick="decrypt()">Decrypt</button>
 	</div>
-	<div>Decoded message:
-		<pre id="output"></pre>
-	</div>
+	
 </body>
-
 <script>
 /* Code by @Zro716 ( https://scratch.mit.edu/users/Zro716/ )
  * Challenge by @EncloCreations at https://scratch.mit.edu/discuss/topic/169806/
  */
+var CHARS = "\n !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
 
-function StuffToArray(stuff) {
-    for (var i = stuff.length - 1, temp = "", arr = []; i > -1;) {
-        temp = "" + stuff[i--] + temp;
-        if ("" + temp[0] + temp[1] == "0x") arr.unshift(temp), temp = "";
-    }
-    return arr;
+var EncryptedElem = document.getElementById("encrypted"),
+	DecryptedElem = document.getElementById("decrypted"),
+	KeyElem       = document.getElementById("key");
+
+function parse(m) {
+    for (var i=m.length-1,t="",a=[];i>-1;) { t=""+m[i--]+t;if(""+t[0]+t[1]=="0x")a.unshift(t),t=""; }
+    return a;
 }
 
-function doSomeHackyThings(msg, key) {
-    document.getElementById("input").innerHTML = msg;
-    document.getElementById("key").innerHTML = key;
-
-    var chars = "\n !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
-    var decoded = "";
-    msg = StuffToArray(msg);
-    while (msg.length > key.length) msg.pop();
-    for (var i = 0; i < msg.length; i++) {
-		msg[i] = "" + ~~msg[i]; // coerce hexadecimal to decimal
-        while (msg[i].length < 6) msg[i] = "" + 0 + msg[i]; // prepend zeroes to make length = 6
+function decrypt() {
+    var e = EncryptedElem.value, k = KeyElem.value, d = "";
+    if (!e) return alert("No data to decrypt.");
+	if (!k) return alert("Missing key for data.");
+    e=parse(e);
+    while(e.length>k.length)e.pop();
+    for (var i=0;i<e.length;i++){
+    	e[i]=""+~~e[i];
+    	while(e[i].length<6)e[i]="0"+e[i];
+    	e[i]=e[i].substring(2*(k[i]-1),2*k[i]);
+    	d+=CHARS[~~e[i]];
     }
-	console.log(msg); // after decimal conversion
-	for (var i = 0; i < msg.length; i++) { msg[i] = msg[i].substring(2 * (key[i] - 1), 2 * key[i]); } // get pair of digits from the key
-	console.log(msg); // after using key
-	for (var i = 0; i < msg.length; i++) { decoded += chars[~~msg[i]]; } // build decoded message from chars
-	
-	document.getElementById("after-key").innerHTML = msg.join();
-    document.getElementById("output").innerHTML = decoded;
+    DecryptedElem.value = d;
 }
 
+function encrypt() {
+	var e = [], k = [], d = DecryptedElem.value;
+	if(!d)return alert("No data to encrypt.");
+	for (var i=0,r=Math.random,x,y,z;i<d.length;i++){
+		x=3,y=[],z=~~(3*r());
+		while(x--)y.push(""+~~(100*r()));
+		y[z]=CHARS.indexOf(d[i]);
+		for(x=0;x<3;x++){
+			y[x]=""+y[x];
+			if(y[x].length<2)y[x]="0"+y[x];
+		}
+		e.push("0x"+(~~y.join('')).toString(16));
+		k.push(z+1);
+	}
+	EncryptedElem.value = e.join('');
+	KeyElem.value = k.join('');
+}
+</script>
+<script id="obsolete">
+/*
 function ajax(type, url, async, callback) {
     var xhr = new XMLHttpRequest();
     xhr.open(type, url, async);
@@ -63,25 +81,22 @@ function ajax(type, url, async, callback) {
     xhr.send();
 }
 
-function GetGrabDaStuffsPls() {
+function getDataFromTopic() {
     var thingy, key;
     // get message
-    ajax("GET","https://scratch.mit.edu/discuss/topic/169806/", true,
-
-    function (dom) {
+    ajax("GET","https://scratch.mit.edu/discuss/topic/169806/", true, function (dom) {
         thingy = dom.getElementsByClassName("post_body_html")[0].getElementsByClassName("bb-small")[0].innerHTML;
-        if (thingy && key) doSomeHackyThings(thingy, key);
+        EncryptedElem.value = thingy;
+        if (thingy && key) decrypt();
     });
     // get key
-    ajax("GET", "https://scratch.mit.edu/discuss/topic/169806/?page=2", true,
-
-    function (dom) {
+    ajax("GET", "https://scratch.mit.edu/discuss/topic/169806/?page=2", true, function (dom) {
         key = dom.getElementById("p1628095").getElementsByClassName("postright")[0].innerHTML.match(/[123]{10,}/)[0];
-        if (thingy && key) doSomeHackyThings(thingy, key);
+        KeyElem.value = key;
+        if (thingy && key) decrypt();
     });
 }
 
-/*
 function IntToBinary(num,bits) {
     num = ~~num;
     var bin = "";
@@ -92,7 +107,8 @@ function IntToBinary(num,bits) {
     }
     return bin;
 }
+
+getDataFromTopic();
 */
-GetGrabDaStuffsPls();
 </script>
 </html>
