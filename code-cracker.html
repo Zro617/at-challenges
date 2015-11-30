@@ -254,12 +254,12 @@ function CrackCode() {
 			break;
 		case "Binary":
 			CODE = COMMANDS["/split"][0](CODE,"([01]{8})");
-			for (var i=0;b<CODE.length;i++)CODE[i]=parseInt(CODE[i],2);
+			for (var i=0;i<CODE.length;i++)CODE[i]=parseInt(CODE[i],2);
 			CODE = CODE.join(" ");
 			break;
 		case "Hexadecimal":
 			CODE = COMMANDS["/split"][0](CODE,"(0x[\dA-Fa-f]+)");
-			for (var i=0;b<CODE.length;i++)CODE[i]=~~CODE[i];
+			for (var i=0;i<CODE.length;i++)CODE[i]=~~CODE[i];
 			CODE = CODE.join(" ");
 		case "Base64":
 			CODE = atob(CODE);
