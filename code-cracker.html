@@ -70,7 +70,7 @@
 <div id="codelength">Length: 0</div><br>
 <button id="crack" onclick="CrackCode()" style="position:absolute;left:0px">Crack Code</button>
 <button id="reset" onclick="ResetRules()" style="position:absolute;left:160px">Reset Rules</button>
-<button id="crack" onclick="RecycleOutput()" style="position:absolute;left:320px">Use Output</button>
+<button id="recycle" onclick="RecycleOutput()" style="position:absolute;left:320px">Use Output</button>
 </div>
 <div class="charset" style="display:block">Charset:
 <select id="charset" style="display:block">
@@ -78,9 +78,7 @@
 	<option value="Binary">Binary</option>
 	<option value="Base64">Base64</option>
 	<option value="ASCII">ASCII</option>
-	<option value="UTF-8">UTF-8</option>
-	<option value="UTF-16">UTF-16</option>
-	<option value="UTF-32">UTF-32</option>
+	<option value="Unicode">Unicode</option>
 </select>
 </div>
 <div class="rules" title="Double click for Help" ondblclick="Help()">Rules:<br>
@@ -184,11 +182,11 @@ function GetRules() {
 				cmd = rule[0]
 				if (COMMANDS[cmd] && rule.length-1 == COMMANDS[cmd][1]) {
 					switch(rule.length) {
-						case 1: CODE = COMMANDS[cmd](CODE);break;
-						case 2: CODE = COMMANDS[cmd](CODE,rule[1]);break;
-						case 3: CODE = COMMANDS[cmd](CODE,rule[1],rule[2]);break;
+						case 1: CODE = COMMANDS[cmd][0](CODE);break;
+						case 2: CODE = COMMANDS[cmd][0](CODE,rule[1]);break;
+						case 3: CODE = COMMANDS[cmd][0](CODE,rule[1],rule[2]);break;
 					}
-				} else return alert("Invalid rule at line"+r);
+				} else return alert("Invalid command at line"+r);
 			} else {
 				rule = [rule.substring(0,1),rule.substring(2,rule.length)];
 				if (rule[0].length == 1) rules[rule[0]] = rule[1] || "";
@@ -197,6 +195,20 @@ function GetRules() {
 		}
 	}
 	return rules;
+}
+function ResetRules() {
+	ClearRules();
+	ClearInfo();
+	CODE = GetCode();
+	var total = CODE.length;
+	var codeChars = CODE.toUniqueCharArray();
+	for (var x=0,count,percent;x<codeChars.length;x++){
+		count = CODE.countChars(codeChars[x]);
+		percent = 100 * count / total;
+		AddRule(codeChars[x],"");
+		AddTableInfo(codeChars[x],count,percent);
+	}
+	TableElem.style.display = "block";
 }
 function Help() {
 	alert(
@@ -222,33 +234,40 @@ function SetOutput(x) {
 function ClearOutput(){
 	OutputElem.value = "";
 }
+
 function RecycleOutput() {
 	SetCode(GetOutput());
 	ClearOutput();
 	ResetRules();
 }
 
-function ResetRules() {
-	ClearRules();
-	ClearInfo();
-	CODE = GetCode();
-	var total = CODE.length;
-	var codeChars = CODE.toUniqueCharArray();
-	for (var x=0,count,percent;x<codeChars.length;x++){
-		count = CODE.countChars(codeChars[x]);
-		percent = 100 * count / total;
-		AddRule(codeChars[x],"");
-		AddTableInfo(codeChars[x],count,percent);
-	}
-	TableElem.style.display = "block";
-}
-
 function CrackCode() {
 	CODE = GetCode();
 	//CODE = CODE.split("");
 	var rules = GetRules();
-	for (var i=0;i<CODE.length;i++) {
-		CODE[i] = rules[CODE[i]] || CODE[i];
+	var charset = CharsetElem.options[CharsetElem.selectedIndex].value;
+	switch(charset) {
+		case "0":
+			for (var i=0;i<CODE.length;i++) CODE[i] = rules[CODE[i]] || CODE[i];
+			break;
+		case "Binary":
+			CODE = COMMANDS["/split"][0](CODE,"([01]{8})");
+			for (var i=0;b<CODE.length;i++)CODE[i]=parseInt(CODE[i],2);
+			CODE = CODE.join(" ");
+			break;
+		case "Base64":
+			CODE = atob(CODE);
+			break;
+		case "ASCII":
+			CODE = CODE.split(" ");
+			for (var i=0;i<CODE.length;i++)CODE[i]=String.fromCharCode(CODE[i]);
+			CODE = CODE.join("");
+			break;
+		case "Unicode":
+			CODE = CODE.split(" ");
+			for (var i=0;i<CODE.length;i++)CODE[i]=String.fromCodePoint(CODE[i]);
+			CODE = CODE.join("");
+			break;
 	}
 	//CODE = CODE.join("");
 	SetOutput(CODE);
