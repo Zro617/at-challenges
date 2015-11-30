@@ -178,7 +178,7 @@ function GetRules() {
 	for (var r=0,rule,cmd;r<temp.length;r++) {
 		rule = temp[r];
 		if (rule) {
-			if (rule[0]=="/" && rule.indexOf("=")==-1) {
+			if (rule[0]=="/" && rule.indexOf("=")<0) {
 				rule = rule.split(" ");
 				cmd = rule[0];
 				if (COMMANDS[cmd] && rule.length-1 == COMMANDS[cmd][1]) {
@@ -189,6 +189,7 @@ function GetRules() {
 					}
 				} else return alert("Invalid command at line"+r);
 			} else {
+				// TODO: Figure out why space is removed
 				rule = [rule.substring(0,1),rule.substring(2,rule.length)];
 				if (rule[0].length == 1) rules[rule[0]] = rule[1] || "";
 				else return alert("Invalid rule at line "+r);
@@ -227,7 +228,7 @@ function Help() {
 }
 
 function GetOutput() {
-	OutputElem.value;
+	return OutputElem.value;
 }
 function SetOutput(x) {
 	OutputElem.value = x;
