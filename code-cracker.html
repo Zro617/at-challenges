@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf=8"></meta>
+<style>
+	html {
+		background-color: #000;
+		font-family: "Consolas",monospace;
+		color: green;
+	}
+	a {
+		color: #00FF55;
+	}
+	button {
+		background-color: green;
+		font-family: "Consolas",monospace;
+		color: white;
+		width: 150px;
+		height: 36px;
+	}
+	textarea {
+		background-color: #222;
+		color: white;
+	}
+	select {
+		background-color:#222;
+		color:white;
+	}
+	div.code {
+		position: absolute;
+		left: 100px;
+		top: 120px;
+	}
+	div.charset {
+		position: absolute;
+		left: 590px;
+		top: 324px;
+	}
+	div.rules {
+		position: absolute;
+		left: 720px;
+		top: 120px;
+	}
+	div.output {
+		position: absolute;
+		left: 100px;
+		top: 404px;
+	}
+	div.info {
+		position: absolute;
+		left: 860px;
+		top: 120px;
+	}
+	table, td, th {
+		font-size: 12px;
+		border: 1px solid #00FF32;
+		border-spacing: 0px;
+		text-align: center;
+	}
+</style>
+</head>
+<body>
+<center>
+	<h1>Code Cracker 9000</h1>
+	<h2>Developed by <a href="https://scratch.mit.edu/users/Zro716">Zro716</a></h2>
+</center>
+
+<div class="code">Input:<br>
+<textarea id="code" rows="10" cols="80" onkeyup="UpdateLength()"></textarea><br>
+<div id="codelength">Length: 0</div><br>
+<button id="crack" onclick="CrackCode()" style="position:absolute;left:0px">Crack Code</button>
+<button id="reset" onclick="ResetRules()" style="position:absolute;left:160px">Reset Rules</button>
+<button id="crack" onclick="RecycleOutput()" style="position:absolute;left:320px">Use Output</button>
+</div>
+<div class="charset" style="display:block">Charset:
+<select id="charset" style="display:block">
+	<option value="0">Custom</option>
+	<option value="Binary">Binary</option>
+	<option value="Base64">Base64</option>
+	<option value="ASCII">ASCII</option>
+	<option value="UTF-8">UTF-8</option>
+	<option value="UTF-16">UTF-16</option>
+	<option value="UTF-32">UTF-32</option>
+</select>
+</div>
+<div class="rules" title="Double click for Help" ondblclick="Help()">Rules:<br>
+<textarea id="rules" rows="29" cols="8" placeholder=
+"a=B
+b=F
+etc."></textarea><br>
+</div>
+<div class="output">Output:<br>
+<textarea id="output" rows="10" cols="80"></textarea><br>
+</div>
+<div class="info">
+<table id="info" style="display:none">
+</table>
+</div>
+</body>
+<script id="constants">
+var CHARS = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
+var CODE = "";
+var CodeElem = document.getElementById("code");
+var CharsetElem = document.getElementById("charset");
+var RulesElem = document.getElementById("rules");
+var OutputElem = document.getElementById("output");
+var TableElem = document.getElementById("info");
+
+var COMMANDS = {
+	"/split": [function(str,x) {
+		var regex = new RegExp(x,"g");
+		return str.match(regex);
+	},1],
+	"/join": [function(arr,x) {
+		if (typeof arr != Object) arr = JSON.parse(arr);
+		return arr.join(x);
+	},1],
+	"/reverse": [function(str) {
+		return str.split("").reverse().join("");
+	},0],
+	"/limit": [function(str,x) {
+		return str.substring(0,x);
+	},1]
+};
+</script>
+<script id="prototypes">
+String.prototype.toUniqueCharArray = function() {
+	for(var i=0,arr=[];i<this.length;i++)
+		if(arr.indexOf(this.charAt(i))==-1)
+			arr.push(this.charAt(i));
+	return arr.sort();
+}
+String.prototype.countChars = function(c) {
+	for(var i=0,count=0;i<this.length;i++)if(this.charAt(i)==c)count++;
+	return count;
+}
+</script>
+<script id="hackerstuff">
+function GetCode() {
+	return CodeElem.value;
+}
+function SetCode(x) {
+	CodeElem.value = x;
+}
+function UpdateLength() {
+	document.getElementById("codelength").innerHTML = "Length: "+GetCode().length;
+}
+
+function AddTableHeader(x,y,z) {
+	TableElem.innerHTML +=
+	 "<tr align='center'>"
+	+"<th>"+x+"</th>"
+	+"<th>"+y+"</th>"
+	+"<th>"+z+"</th>"
+	+"</tr>";
+}
+function AddTableInfo(x,y,z) {
+	TableElem.innerHTML +=
+	 "<tr align='center'>"
+	+"<td>"+x+"</td>"
+	+"<td>"+y+"</td>"
+	+"<td>"+z+"</td>"
+	+"</tr>";
+}
+function ClearInfo() {
+	while(TableElem.firstChild)TableElem.removeChild(TableElem.firstChild);
+	AddTableHeader("Char","Occurences","% of Total");
+}
+
+function ClearRules() {
+	RulesElem.value = "";
+}
+function AddRule(x,y) {
+	RulesElem.value += x+"="+y+"\n";
+}
+function GetRules() {
+	var rules = {};
+	var temp = RulesElem.value.split("\n");
+	for (var r=0,rule,cmd;r<temp.length;r++) {
+		rule = temp[r];
+		if (rule) {
+			if (rule[0]=="/" && rule.indexOf("=")==-1) {
+				rule = rule.split(" ");
+				cmd = rule[0]
+				if (COMMANDS[cmd] && rule.length-1 == COMMANDS[cmd][1]) {
+					switch(rule.length) {
+						case 1: CODE = COMMANDS[cmd](CODE);break;
+						case 2: CODE = COMMANDS[cmd](CODE,rule[1]);break;
+						case 3: CODE = COMMANDS[cmd](CODE,rule[1],rule[2]);break;
+					}
+				} else return alert("Invalid rule at line"+r);
+			} else {
+				rule = [rule.substring(0,1),rule.substring(2,rule.length)];
+				if (rule[0].length == 1) rules[rule[0]] = rule[1] || "";
+				else return alert("Invalid rule at line "+r);
+			}
+		}
+	}
+	return rules;
+}
+function Help() {
+	alert(
+	"A=B\n"+
+	"  A is the original char\n"+
+	"  B is the new char or string to map to\n\n"+
+	"/command params\n"+
+	"  Valid commands:\n"+
+	"    split x     - parse code using regex x\n"+
+	"    join x      - concatenate values by x\n"+
+	"    reverse     - reverses code string\n" +
+	"    limit x     - parse at most x chars of code\n"+
+	"  Note: Commands are executed BEFORE mapping chars.\n"
+	,"Quick Reference for Custom Rules");
+}
+
+function GetOutput() {
+	OutputElem.value;
+}
+function SetOutput(x) {
+	OutputElem.value = x;
+}
+function ClearOutput(){
+	OutputElem.value = "";
+}
+function RecycleOutput() {
+	SetCode(GetOutput());
+	ClearOutput();
+	ResetRules();
+}
+
+function ResetRules() {
+	ClearRules();
+	ClearInfo();
+	CODE = GetCode();
+	var total = CODE.length;
+	var codeChars = CODE.toUniqueCharArray();
+	for (var x=0,count,percent;x<codeChars.length;x++){
+		count = CODE.countChars(codeChars[x]);
+		percent = 100 * count / total;
+		AddRule(codeChars[x],"");
+		AddTableInfo(codeChars[x],count,percent);
+	}
+	TableElem.style.display = "block";
+}
+
+function CrackCode() {
+	CODE = GetCode();
+	//CODE = CODE.split("");
+	var rules = GetRules();
+	for (var i=0;i<CODE.length;i++) {
+		CODE[i] = rules[CODE[i]] || CODE[i];
+	}
+	//CODE = CODE.join("");
+	SetOutput(CODE);
+}
+</script>
+</html>
