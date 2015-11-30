@@ -106,12 +106,18 @@ var OutputElem = document.getElementById("output");
 var TableElem = document.getElementById("info");
 
 var COMMANDS = {
-	"/split": [function(str,x) {
+	"/match": [function(str,x) {
 		var regex = new RegExp(x,"g");
-		return str.match(regex);
+		return str.match(regex).join(" ");
+	},1],
+	"/split": [function(str,x) {
+		return str.split(x).join(" ");
 	},1],
 	"/join": [function(arr,x) {
-		if (typeof arr != Object) arr = JSON.parse(arr);
+		if (typeof arr != Object) {
+			try { arr = JSON.parse(arr); }
+			catch (e) { arr = arr.split(" "); }
+		}
 		return arr.join(x);
 	},1],
 	"/reverse": [function(str) {
@@ -191,7 +197,6 @@ function GetRules() {
 					}
 				} else return alert("Invalid command at line"+r);
 			} else {
-				// TODO: Figure out why space is removed
 				rule = [rule.substring(0,1),rule.substring(2,rule.length)];
 				if (rule[1].length) rules[rule[0]] = rule[1];
 				//else return alert("Invalid rule at line "+r);
@@ -221,6 +226,7 @@ function Help() {
 	"  B is the new char or string to map to\n\n"+
 	"/command params\n"+
 	"  Valid commands:\n"+
+	"    match x     - matches all instances of regex x"+
 	"    split x     - parse code using regex x\n"+
 	"    join x      - concatenate values by x\n"+
 	"    reverse    - reverses code string\n" +
@@ -247,37 +253,38 @@ function RecycleOutput() {
 
 function CrackCode() {
 	CODE = GetCode();
-	//CODE = CODE.split("");
 	var rules = GetRules();
+	//console.log(rules); // DEBUG
 	var charset = CharsetElem.options[CharsetElem.selectedIndex].value;
 	switch(charset) {
 		case "0":
+			CODE = CODE.split("");
 			for (var i=0;i<CODE.length;i++) CODE[i] = rules[CODE[i]] || CODE[i];
+			CODE = CODE.join("");
 			break;
 		case "Binary":
-			CODE = COMMANDS["/split"][0](CODE,"([01]{8})");
+			CODE = COMMANDS["/match"][0](CODE,"([01]{8})");
 			for (var i=0;i<CODE.length;i++)CODE[i]=parseInt(CODE[i],2);
 			CODE = CODE.join(" ");
 			break;
 		case "Hexadecimal":
-			CODE = COMMANDS["/split"][0](CODE,"(0x[\\dA-Fa-f]+)");
+			CODE = COMMANDS["/match"][0](CODE,"(0x[\\dA-Fa-f]+)");
 			for (var i=0;i<CODE.length;i++)CODE[i]=~~CODE[i];
 			CODE = CODE.join(" ");
 		case "Base64":
 			CODE = atob(CODE);
 			break;
 		case "ASCII":
-			CODE = COMMANDS["/split"][0](CODE,"(\\d+)");
+			CODE = COMMANDS["/match"][0](CODE,"(\\d+)");
 			for (var i=0;i<CODE.length;i++)CODE[i]=String.fromCharCode(CODE[i]);
 			CODE = CODE.join("");
 			break;
 		case "Unicode":
-			CODE = COMMANDS["/split"][0](CODE,"(\\d+)");
+			CODE = COMMANDS["/match"][0](CODE,"(\\d+)");
 			for (var i=0;i<CODE.length;i++)CODE[i]=String.fromCodePoint(CODE[i]);
 			CODE = CODE.join("");
 			break;
 	}
-	//CODE = CODE.join("");
 	SetOutput(CODE);
 }
 </script>
