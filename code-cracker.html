@@ -183,15 +183,17 @@ function GetRules() {
 				cmd = rule[0];
 				if (COMMANDS[cmd] && rule.length-1 == COMMANDS[cmd][1]) {
 					switch(rule.length) {
+						case 0: return alert("Hax?");
 						case 1: CODE = COMMANDS[cmd][0](CODE);break;
 						case 2: CODE = COMMANDS[cmd][0](CODE,rule[1]);break;
 						case 3: CODE = COMMANDS[cmd][0](CODE,rule[1],rule[2]);break;
+						case 4: break;
 					}
 				} else return alert("Invalid command at line"+r);
 			} else {
 				// TODO: Figure out why space is removed
 				rule = [rule.substring(0,1),rule.substring(2,rule.length)];
-				if (rule[0].length == 1) rules[rule[0]] = rule[1] || "";
+				if (rule[1].length) rules[rule[0]] = rule[1];
 				else return alert("Invalid rule at line "+r);
 			}
 		}
@@ -221,7 +223,7 @@ function Help() {
 	"  Valid commands:\n"+
 	"    split x     - parse code using regex x\n"+
 	"    join x      - concatenate values by x\n"+
-	"    reverse     - reverses code string\n" +
+	"    reverse    - reverses code string\n" +
 	"    limit x     - parse at most x chars of code\n"+
 	"  Note: Commands are executed BEFORE mapping chars.\n"
 	,"Quick Reference for Custom Rules");
@@ -258,19 +260,19 @@ function CrackCode() {
 			CODE = CODE.join(" ");
 			break;
 		case "Hexadecimal":
-			CODE = COMMANDS["/split"][0](CODE,"(0x[\dA-Fa-f]+)");
+			CODE = COMMANDS["/split"][0](CODE,"(0x[\\dA-Fa-f]+)");
 			for (var i=0;i<CODE.length;i++)CODE[i]=~~CODE[i];
 			CODE = CODE.join(" ");
 		case "Base64":
 			CODE = atob(CODE);
 			break;
 		case "ASCII":
-			CODE = COMMANDS["/split"][0](CODE,"(\d+)");
+			CODE = COMMANDS["/split"][0](CODE,"(\\d+)");
 			for (var i=0;i<CODE.length;i++)CODE[i]=String.fromCharCode(CODE[i]);
 			CODE = CODE.join("");
 			break;
 		case "Unicode":
-			CODE = COMMANDS["/split"][0](CODE,"(\d+)");
+			CODE = COMMANDS["/split"][0](CODE,"(\\d+)");
 			for (var i=0;i<CODE.length;i++)CODE[i]=String.fromCodePoint(CODE[i]);
 			CODE = CODE.join("");
 			break;
