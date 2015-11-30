@@ -179,7 +179,7 @@ function GetRules() {
 		if (rule) {
 			if (rule[0]=="/" && rule.indexOf("=")==-1) {
 				rule = rule.split(" ");
-				cmd = rule[0]
+				cmd = rule[0];
 				if (COMMANDS[cmd] && rule.length-1 == COMMANDS[cmd][1]) {
 					switch(rule.length) {
 						case 1: CODE = COMMANDS[cmd][0](CODE);break;
@@ -255,16 +255,20 @@ function CrackCode() {
 			for (var i=0;b<CODE.length;i++)CODE[i]=parseInt(CODE[i],2);
 			CODE = CODE.join(" ");
 			break;
+		case "Hexadecimal":
+			CODE = COMMANDS["/split"][0](CODE,"(0x[\dA-Fa-f]+)");
+			for (var i=0;b<CODE.length;i++)CODE[i]=~~CODE[i];
+			CODE = CODE.join(" ");
 		case "Base64":
 			CODE = atob(CODE);
 			break;
 		case "ASCII":
-			CODE = CODE.split(" ");
+			CODE = COMMANDS["/split"][0](CODE,"(\d+)");
 			for (var i=0;i<CODE.length;i++)CODE[i]=String.fromCharCode(CODE[i]);
 			CODE = CODE.join("");
 			break;
 		case "Unicode":
-			CODE = CODE.split(" ");
+			CODE = COMMANDS["/split"][0](CODE,"(\d+)");
 			for (var i=0;i<CODE.length;i++)CODE[i]=String.fromCodePoint(CODE[i]);
 			CODE = CODE.join("");
 			break;
