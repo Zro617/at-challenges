@@ -205,6 +205,12 @@ function GetRules() {
 	}
 	return rules;
 }
+function GetRawRules() {
+	return RulesElem.value;
+}
+function SetRawRules(x) {
+	RulesElem.value = x;
+}
 function ResetRules() {
 	ClearRules();
 	ClearInfo();
@@ -218,7 +224,9 @@ function ResetRules() {
 		AddTableInfo(codeChars[x],count,percent);
 	}
 	TableElem.style.display = "block";
+	SetParams();
 }
+
 function Help() {
 	alert(
 	"A=B\n"+
@@ -244,18 +252,32 @@ function SetOutput(x) {
 function ClearOutput(){
 	OutputElem.value = "";
 }
-
 function RecycleOutput() {
 	SetCode(GetOutput());
 	ClearOutput();
 	ResetRules();
 }
 
+function GetCharset() {
+	return CharsetElem.options[CharsetElem.selectedIndex].value;
+}
+function SetCharset(x) {
+	CharsetElem.value = x;
+}
+
+function GetOptions() {
+	return {charset:GetCharset(),rules:GetRawRules()};
+}
+function SetOptions(opts) {
+	if (opts.charset) SetCharset(opts.charset);
+	if (opts.rules) SetRawRules(opts.rules);
+}
+
 function CrackCode() {
 	CODE = GetCode();
 	var rules = GetRules();
 	//console.log(rules); // DEBUG
-	var charset = CharsetElem.options[CharsetElem.selectedIndex].value;
+	var charset = GetCharset();
 	switch(charset) {
 		case "0":
 			CODE = CODE.split("");
@@ -286,6 +308,26 @@ function CrackCode() {
 			break;
 	}
 	SetOutput(CODE);
+	SetParams();
 }
+</script>
+<script id="get">
+function GetParams() {
+	if (window.location.hash == "") return;
+	var params = JSON.parse(atob(window.location.hash.replace(/#/,"")));
+	if (params.input) SetCode(params.input);
+	if (params.options) SetOptions(params.options);
+	if (params.output) SetOutput(params.output);
+}
+
+function SetParams() {
+	var params = {};
+	params.input = GetCode();
+	params.options = GetOptions();
+	params.output = GetOutput();
+	window.location.hash = "#"+btoa(JSON.stringify(params));
+}
+
+window.onload = GetParams;
 </script>
 </html>
