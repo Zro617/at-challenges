@@ -313,8 +313,9 @@ function CrackCode() {
 </script>
 <script id="get">
 function GetParams() {
-	if (window.location.hash == "") return;
-	var params = JSON.parse(atob(window.location.hash.replace(/#/,"")));
+	var hash = decodeURIComponent(window.location.hash).replace(/#/,"");
+	if (!hash) return;
+	var params = JSON.parse(atob(hash));
 	if (params.input) SetCode(params.input);
 	if (params.options) SetOptions(params.options);
 	if (params.output) SetOutput(params.output);
@@ -325,7 +326,7 @@ function SetParams() {
 	params.input = GetCode();
 	params.options = GetOptions();
 	params.output = GetOutput();
-	window.location.hash = "#"+btoa(JSON.stringify(params));
+	window.location.hash = "#"+encodeURIComponent(btoa(JSON.stringify(params)));
 }
 
 window.onload = GetParams;
