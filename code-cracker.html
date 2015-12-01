@@ -48,7 +48,7 @@
 	}
 	div.info {
 		position: absolute;
-		left: 860px;
+		left: 880px;
 		top: 120px;
 	}
 	table, td, th {
@@ -60,73 +60,58 @@
 </style>
 </head>
 <body>
-<center>
-	<h1>Code Cracker 9000</h1>
-	<h2>Developed by <a href="https://scratch.mit.edu/users/Zro716">Zro716</a></h2>
-</center>
-
-<div class="code">Input:<br>
-<textarea id="code" rows="10" cols="80" onkeyup="UpdateLength()"></textarea><br>
-<div id="codelength">Length: 0</div><br>
-<button id="crack" onclick="CrackCode()" style="position:absolute;left:0px">Crack Code</button>
-<button id="reset" onclick="ResetRules()" style="position:absolute;left:160px">Reset Rules</button>
-<button id="recycle" onclick="RecycleOutput()" style="position:absolute;left:320px">Use Output</button>
-</div>
-<div class="charset" style="display:block">Charset:
-<select id="charset" style="display:block">
-	<option value="0">Custom</option>
-	<option value="Binary">Binary</option>
-	<option value="Hexadecimal">Hexadecimal</option>
-	<option value="Base64">Base64</option>
-	<option value="ASCII">ASCII</option>
-	<option value="Unicode">Unicode</option>
-</select>
-</div>
-<div class="rules" title="Double click for Help" ondblclick="Help()">Rules:<br>
-<textarea id="rules" rows="29" cols="8" placeholder=
-"a=B
-b=F
-etc."></textarea><br>
-</div>
-<div class="output">Output:<br>
-<textarea id="output" rows="10" cols="80"></textarea><br>
-</div>
-<div class="info">
-<table id="info" style="display:none">
-</table>
-</div>
+    <center>
+        	<h1>Code Cracker 9000</h1>
+        	<h2>Developed by <a href="https://scratch.mit.edu/users/Zro716">Zro716</a></h2>
+    </center>
+    <div class="code">Input:
+        <br>
+        <textarea id="code" rows="10" cols="80" onkeyup="UpdateLength()"></textarea>
+        <br>
+        <div id="codelength">Length: 0</div>
+        <br>
+        <button id="crack" onclick="CrackCode()" style="position:absolute;left:0px">Crack Code</button>
+        <button id="reset" onclick="ResetRules()" style="position:absolute;left:160px">Reset Rules</button>
+        <button id="recycle" onclick="UseOutput()" style="position:absolute;left:320px">Use Output</button>
+    </div>
+    <div class="charset">Charset:
+        <br>
+        <select id="charset">
+            <option value="0">Custom</option>
+            <option value="Binary">Binary</option>
+            <option value="Hexadecimal">Hexadecimal</option>
+            <option value="Base64">Base64</option>
+            <option value="ASCII">ASCII</option>
+            <option value="Unicode">Unicode</option>
+        </select>
+    </div>
+    <div class="rules" title="Double click for Help" ondblclick="HelpWithRules()">Rules:
+        <br>
+        <textarea id="rules" rows="29" cols="16" placeholder=
+"abc->DEF
+123->thingy
+/split ~"></textarea>
+        <br>
+    </div>
+    <div class="output">Output:
+        <br>
+        <textarea id="output" rows="10" cols="80"></textarea>
+        <br>
+    </div>
+    <div class="info">
+        <table id="info"></table>
+    </div>
 </body>
 <script id="constants">
-var CHARS = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
-var CODE = "";
 var CodeElem = document.getElementById("code");
 var CharsetElem = document.getElementById("charset");
 var RulesElem = document.getElementById("rules");
 var OutputElem = document.getElementById("output");
 var TableElem = document.getElementById("info");
 
-var COMMANDS = {
-	"/match": [function(str,x) {
-		var regex = new RegExp(x,"g");
-		return str.match(regex).join(" ");
-	},1],
-	"/split": [function(str,x) {
-		return str.split(x).join(" ");
-	},1],
-	"/join": [function(arr,x) {
-		if (typeof arr != Object) {
-			try { arr = JSON.parse(arr); }
-			catch (e) { arr = arr.split(" "); }
-		}
-		return arr.join(x);
-	},1],
-	"/reverse": [function(str) {
-		return str.split("").reverse().join("");
-	},0],
-	"/limit": [function(str,x) {
-		return str.substring(0,x);
-	},1]
-};
+var CHARS = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
+var CODE = "";
+var COMMANDS;
 </script>
 <script id="prototypes">
 String.prototype.toUniqueCharArray = function() {
@@ -139,8 +124,58 @@ String.prototype.countChars = function(c) {
 	for(var i=0,count=0;i<this.length;i++)if(this.charAt(i)==c)count++;
 	return count;
 }
+String.prototype.toCharArray = function() {
+	return this.split("");
+}
+String.prototype.toWordArray = function() {
+	return this.split(" ");
+}
+String.prototype.firstChar = function() {
+	return this[0];
+}
+String.prototype.lastChar = function() {
+	return this[this.length-1];
+}
+Array.prototype.delete = function(x) {
+	return this.splice(x,1);
+}
+Array.prototype.merge = function(a) {
+	while(a.length)this.push(a.shift());
+	return this;
+}
+Array.prototype.truncate = function(x) {
+	while(this.length > x) this.pop();
+	return this;
+}
+Array.prototype.firstElem = function() {
+	return this[0];
+}
+Array.prototype.lastElem = function() {
+	return this[this.length-1];
+}
 </script>
 <script id="hackerstuff">
+// Command functions
+function ClearCommands() {
+	COMMANDS = {};
+}
+function AddCommand(name,func,params,description){
+	if (!name) return alert("Invalid function declaration. Function name not defined.");
+	if (func.length != params+1) return alert("Invalid function declaration. Expected parameter count must be 1 less than actual count");
+	COMMANDS["/"+name] = [func,params,description];
+}
+function GetCommands() {
+	var keys = Object.keys(COMMANDS);
+	for (var k=0,p,q,str="";k<keys.length;k++) {
+		str+="  "+keys[k];
+		p=0,q=COMMANDS[keys[k]][1];
+		while(p<q)str+=" "+"xyzwvu"[p++];
+		str+="    :: "+COMMANDS[keys[k]][2]+"\n";
+	}
+	return str;
+}
+
+// Code/Input functions
 function GetCode() {
 	return CodeElem.value;
 }
@@ -151,6 +186,11 @@ function UpdateLength() {
 	document.getElementById("codelength").innerHTML = "Length: "+GetCode().length;
 }
 
+// Info functions
+function ClearTableInfo() {
+	while(TableElem.firstChild)TableElem.removeChild(TableElem.firstChild);
+	AddTableHeader("Char","Occurences","% of Total");
+}
 function AddTableHeader(x,y,z) {
 	TableElem.innerHTML +=
 	 "<tr align='center'>"
@@ -167,27 +207,55 @@ function AddTableInfo(x,y,z) {
 	+"<td>"+z+"</td>"
 	+"</tr>";
 }
-function ClearInfo() {
-	while(TableElem.firstChild)TableElem.removeChild(TableElem.firstChild);
-	AddTableHeader("Char","Occurences","% of Total");
-}
 
+// Rule functions
 function ClearRules() {
 	RulesElem.value = "";
 }
-function AddRule(x,y) {
-	RulesElem.value += x+"="+y+"\n";
+function AddMapRule(x,y) {
+	RulesElem.value += x+"->"+y+"\n";
 }
-function GetRules() {
+function AddCommandRule(c,params) {
+	if (COMMANDS["/"+c]) RulesElem.value += "/"+c+" "+params+"\n";
+}
+function SetRawRules(x) {
+	RulesElem.value = x;
+}
+function GetRawRules() {
+	return RulesElem.value;
+}
+function GetMapRules() {
 	var rules = {};
-	var temp = RulesElem.value.split("\n");
+	var temp = GetRawRules().split("\n");
+	for (var r=0,rule;r<temp.length;r++) {
+		rule = temp[r];
+		if (rule) {
+			rule = rule.match(/(.+)->(.+)/) || [];
+			if (rule.length) rules[rule[1]] = rule[2];
+		}
+	}
+	return rules;
+}
+function GetCommandParams(x) {
+	var params = [];
+	var i = 0, j = x.indexOf(" ");
+	while (j > i) {
+		params.push(x.substring(i,j));
+		i = j + 1;
+		j = x.indexOf(" ",i);
+	}
+	params.push(x.substring(i,x.length));
+	return params;
+}
+function ApplyCommandRules() {
+	var temp = GetRawRules().split("\n");
 	for (var r=0,rule,cmd;r<temp.length;r++) {
 		rule = temp[r];
 		if (rule) {
-			if (rule[0]=="/" && rule.indexOf("=")<0) {
-				rule = rule.split(" ");
+			if (!/.+->/.test(rule)) {
+				rule = GetCommandParams(rule);
 				cmd = rule[0];
-				if (COMMANDS[cmd] && rule.length-1 == COMMANDS[cmd][1]) {
+				if (cmd && COMMANDS[cmd] && rule.length-1 == COMMANDS[cmd][1]) {
 					switch(rule.length) {
 						case 0: return alert("Hax?");
 						case 1: CODE = COMMANDS[cmd][0](CODE);break;
@@ -195,92 +263,79 @@ function GetRules() {
 						case 3: CODE = COMMANDS[cmd][0](CODE,rule[1],rule[2]);break;
 						case 4: break;
 					}
-				} else return alert("Invalid command at line"+r);
-			} else {
-				rule = [rule.substring(0,1),rule.substring(2,rule.length)];
-				if (rule[1].length) rules[rule[0]] = rule[1];
-				//else return alert("Invalid rule at line "+r);
+				} else return alert("Invalid command at line "+r+": "+temp[r]);
 			}
 		}
 	}
-	return rules;
-}
-function GetRawRules() {
-	return RulesElem.value;
-}
-function SetRawRules(x) {
-	RulesElem.value = x;
 }
 function ResetRules() {
 	ClearRules();
-	ClearInfo();
+	ClearTableInfo();
 	CODE = GetCode();
 	var total = CODE.length;
 	var codeChars = CODE.toUniqueCharArray();
 	for (var x=0,count,percent;x<codeChars.length;x++){
 		count = CODE.countChars(codeChars[x]);
 		percent = 100 * count / total;
-		AddRule(codeChars[x],"");
+		AddMapRule(codeChars[x],"");
 		AddTableInfo(codeChars[x],count,percent);
 	}
-	TableElem.style.display = "block";
 	SetParams();
 }
-
-function Help() {
+function HelpWithRules() {
 	alert(
-	"A=B\n"+
-	"  A is the original char\n"+
-	"  B is the new char or string to map to\n\n"+
-	"/command params\n"+
+	"Quick Reference for Custom Rules\n\n"+
+	"old->new\n"+
+	"  old is the original char or string\n"+
+	"  new is the new char or string\n\n"+
+	"/command [param1 [param2 [...]]]\n"+
 	"  Valid commands:\n"+
-	"    match x     - matches all instances of regex x\n"+
-	"    split x     - parse code using regex x\n"+
-	"    join x      - concatenate values by x\n"+
-	"    reverse    - reverses code string\n" +
-	"    limit x     - parse at most x chars of code\n"+
-	"  Note: Commands are executed BEFORE mapping chars.\n"
-	,"Quick Reference for Custom Rules");
+	GetCommands()+
+	"  Note: Commands are executed BEFORE mapping chars."
+	);
 }
 
-function GetOutput() {
-	return OutputElem.value;
+// Output functions
+function ClearOutput(){
+	OutputElem.value = "";
 }
 function SetOutput(x) {
 	OutputElem.value = x;
 }
-function ClearOutput(){
-	OutputElem.value = "";
+function GetOutput() {
+	return OutputElem.value;
 }
-function RecycleOutput() {
+function UseOutput() {
 	SetCode(GetOutput());
 	ClearOutput();
 	ResetRules();
 }
 
-function GetCharset() {
-	return CharsetElem.options[CharsetElem.selectedIndex].value;
-}
+// Charset functions
 function SetCharset(x) {
 	CharsetElem.value = x;
 }
-
-function GetOptions() {
-	return {charset:GetCharset(),rules:GetRawRules()};
+function GetCharset() {
+	return CharsetElem.options[CharsetElem.selectedIndex].value;
 }
+
+// Options (Charset and Rules)
 function SetOptions(opts) {
 	if (opts.charset) SetCharset(opts.charset);
 	if (opts.rules) SetRawRules(opts.rules);
 }
+function GetOptions() {
+	return {charset:GetCharset(),rules:GetRawRules()};
+}
 
-function CrackCode() {
+// Main function
+function CrackCode(){
 	CODE = GetCode();
-	var rules = GetRules();
-	//console.log(rules); // DEBUG
-	var charset = GetCharset();
-	switch(charset) {
+	ApplyCommandRules();
+	switch(GetCharset()) {
 		case "0":
-			CODE = CODE.split("");
+			var rules = GetMapRules();
+			if (typeof CODE == 'string') CODE = CODE.split("");
 			for (var i=0;i<CODE.length;i++) CODE[i] = rules[CODE[i]] || CODE[i];
 			CODE = CODE.join("");
 			break;
@@ -294,6 +349,7 @@ function CrackCode() {
 			for (var i=0;i<CODE.length;i++)CODE[i]=~~CODE[i];
 			CODE = CODE.join(" ");
 		case "Base64":
+			if (typeof CODE != 'string') CODE = CODE.join("");
 			CODE = atob(CODE);
 			break;
 		case "ASCII":
@@ -311,7 +367,15 @@ function CrackCode() {
 	SetParams();
 }
 </script>
-<script id="get">
+<script id="port">
+// Port functions
+function SetParams() {
+	var params = {};
+	params.input = GetCode();
+	params.options = GetOptions();
+	params.output = GetOutput();
+	window.location.hash = "#"+encodeURIComponent(btoa(JSON.stringify(params)));
+}
 function GetParams() {
 	var hash = decodeURIComponent(window.location.hash).replace(/#/,"");
 	if (!hash) return;
@@ -321,14 +385,19 @@ function GetParams() {
 	if (params.output) SetOutput(params.output);
 }
 
-function SetParams() {
-	var params = {};
-	params.input = GetCode();
-	params.options = GetOptions();
-	params.output = GetOutput();
-	window.location.hash = "#"+encodeURIComponent(btoa(JSON.stringify(params)));
+// Initializer
+function init() {
+	ClearCommands();
+	AddCommand("group",function(o,x){var regex=new RegExp("(\S{1,"+x+"})","g");if(typeof o=="string"){return o.match(regex);}else{for(var i=1,j;i<o.length;i++)for(j=0;j<x&&i<o.length;j++)o[i-1]=""+o[i-1]+o.delete(i);return o;}},1,"Makes groups of x tokens");
+	AddCommand("match",function(o,x){var regex=new RegExp(x,"g");if(typeof o=="string"){return o.match(regex);}else{var i=0,m;while(i<o.length){m=o[i].match(regex);if(m.length)o[i++]=m.join(" ");else o.delete(i);}return o;}},1,"Finds all matches to regex x");
+	AddCommand("remove",function(o,x){var regex=new RegExp(x,"g");if(typeof o=="string"){return o.replace(regex,"");}else{for (var i=0;i<o.length;i++){o[i] = o[i].replace(regex,"");}return o;}},1,"Removes all matches to regex x");
+	AddCommand("split",function(o,x){if(typeof o=="string")return o.split(x);else for(var i=o.length,m;i>0;i--){m=o.shift().split(x);o.merge(m);}return o;},1,"Splits at every x");
+	AddCommand("join", function(o,x){if(typeof o=="string")return o.toCharArray().join(x);return o.join(x)},1,"Joins tokens with x");
+	AddCommand("reverse",function(o){if(typeof o=="string")return o.toCharArray().reverse().join("");return o.reverse();},0,"Reverses order of tokens");
+	AddCommand("limit",function(o,x){if(typeof o=="string")return o.substring(0,x);o.truncate(x);return o;},1,"Limits input to x tokens");
+	GetParams();
 }
 
-window.onload = GetParams;
+window.onload = init;
 </script>
 </html>
