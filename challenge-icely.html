@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+<head>
+ <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+ <style>
+	html {
+		font-family: "Comic Sans MS",sans-serif;
+		color: #845500;
+		background-color: #70C5C5;
+	}
+	a {
+		color: #B85500;
+	}
+	textarea {
+		font-family: "Consolas","Courier New",monospace;
+		border-radius:4px;
+		-moz-border-radius:4px;
+		-webkit-border-radius:4px;
+		color: #FEFEFE;
+		background-color: #222;
+		padding: 15px;
+	}
+	div {
+		margin: 20px 20px;
+	}
+	div.maps {
+		position: absolute;
+		left: 780px;
+		top: 110px;
+	}
+	div.error {
+		color:#F00;
+		display: none;
+		font-size: 12px;
+		padding: 0px;
+		margin: 10px 0px;
+	}
+	button.add {
+		color:#FFF;
+		background-color:#0A0;
+		border-radius:10px;
+		-moz-border-radius:10px;
+		-webkit-border-radius:10px;
+		padding:5px 10px;
+	}
+	button.add:hover {
+		background-color:#0C0;
+	}
+	button.remove {
+		color:#FFF;
+		background-color: #A00;
+		border-radius:10px;
+		-moz-border-radius:10px;
+		-webkit-border-radius:10px;
+		padding:5px 10px;
+	}
+	button.remove:hover {
+		background-color: #C00;
+	}
+	ol {
+		list-style: normal;
+		list-style-position: inside;
+		font-size: 24px;
+		margin: 0px 10px;
+		padding: 0px;
+	}
+	li {
+		position: relative;
+		margin: 8px 0px;
+		font-size: 16px;
+	}
+ </style>
+</head>
+<body>
+<center>
+	<h1><a href="https://scratch.mit.edu/discuss/topic/170633/">Icely's Cipher Challenge</a></h1>
+	<div>Coded by <a href="https://scratch.mit.edu/users/Zro716/">Zro716</a></div>
+</center>
+	<div class="input">Input:<br>
+		<textarea id="input" rows="5" cols="100" placeholder="Input code goes here..." onkeyup="Decode()"></textarea><br>
+	</div>
+	<div class="keys">Key(s):<br>
+		<textarea id="keys" rows="5" cols="100" placeholder="Char keys go here. One key per line. First key is index 1." onkeyup="Decode()"></textarea><br>
+		<div class="error" id="errormsg">Sample text</div>
+	</div>
+	<div class="maps">Mapping Sequence:<br>
+	<ol id="maps"></ol>
+	<button class="add" onclick="AddMap(1,2,true)">+</button>   <button class="remove" id="clearall" onclick="ClearMaps()" style="display:none">CLEAR</button><br>
+	</div>
+	<div class="output">Output:<br>
+		<textarea id="output" rows="5" cols="100"></textarea><br>
+	</div>
+</body>
+<script id="vars">
+/*
+Imbt djv: Xjwo ^M pji? 704857^
+
+abcdefghijklmnopqrstuvwxyz 0123456789 ABCDEFGHIJKLMNOPQRSTUVWXYZ.!@#$%^&*()-:=_+?'
+qazwsxedcrfvtgbyhnujmikolp 1590263847 QAZWSXEDCRFVTGBYHNUJMIKOLP!#%&(-_':@$^*)=+?.
+plokmijnuhbygvtfcrdxeszwaq 2976438910 PLOKMIJNUHBYGVTFCRDXESZWAQ!*:@&#'^$%()?.=_+-
+*/
+var InputElem = document.getElementById("input");
+var KeyElem = document.getElementById("keys");
+var MapElem = document.getElementById("maps");
+var OutputElem = document.getElementById("output");
+var ErrorElem = document.getElementById("errormsg");
+var _m = 0; // counter variable for items
+</script>
+<script id="api">
+// Input functions
+function ClearInput() {
+	InputElem.value = "";
+}
+function SetInput(x) {
+	InputElem.value = x;
+}
+function GetInput() {
+	return InputElem.value;
+}
+// Map functions
+function ClearKeys() {
+	KeyElem.value = "";
+}
+function SetKeys(x) {
+	KeyElem.value = "";
+}
+function SetKeysFromArray(x) {
+	KeyElem.value = x.join("\n");
+}
+function GetKeys() {
+	return KeyElem.value;
+}
+function GetKeysAsArray() {
+	return KeyElem.value.split("\n");
+}
+function ValidateKeys() {
+	var code = GetInput();
+	var keys = GetKeysAsArray();
+	for(var k=0,c,key;k<keys.length;k++)for(c=0,key=keys[k];c<code.length;c++)if(key.indexOf(code[c])<0)return [false,k,c,code[c]];
+	return [true];
+}
+// Map functions
+function ClearMaps() {
+	while(MapElem.firstChild)MapElem.removeChild(MapElem.firstChild);
+	document.getElementById("clearall").style.display = "none";
+	Decode();
+}
+function RemoveMap(id) {
+	// I really don't know another way to remove a list item like this
+	var m = MapElem.getElementsByClassName("item"+id)[0];
+	if (m) MapElem.removeChild(m);
+	if (!MapElem.firstChild) document.getElementById("clearall").style.display = "none";
+	Decode();
+}
+function AddMap(a,b,decode) {
+	MapElem.innerHTML += "<li class='item"+_m+"'>From key "+
+	                     "<input type='textbox' class='from' value='"+a+"' style='width:24px' onkeyup='Decode()'></input> to key "+
+						 "<input type='textbox' class='to' value='"+b+"' style='width:24px' onkeyup='Decode()'></input>      "+
+						 "<button class='remove' onclick='RemoveMap("+_m+")' style='display:inline-block'>&#215;</button></li>";
+	_m++;
+	document.getElementById("clearall").style.display = "inline-block";
+	if (decode) Decode();
+}
+function LoadMaps(x) {
+	ClearMaps();
+	for(var m=0;m<x.length;m++)AddMap(x[m].f+1,x[m].t+1,false);
+	Decode();
+}
+function GetMaps() {
+	var chldrn = MapElem.getElementsByTagName("li");
+	for (var c=0,maps=[],txtbxs,f,t;c<chldrn.length;c++) {
+		txtbxs = chldrn[c].getElementsByTagName("input");
+		f = txtbxs[0].value;
+		t = txtbxs[1].value;
+		maps.push({f:f-1,t:t-1});
+	}
+	return maps;
+}
+// Output functions
+function ClearOutput() {
+	OutputElem.value = "";
+}
+function SetOutput(x) {
+	OutputElem.value = x;
+}
+function GetOutput() {
+	return OutputElem.value;
+}
+</script>
+<script id="main">
+function Save() {
+	var CODE = GetInput();
+	var MAPS = GetMaps();
+	var KEYS = GetKeys();
+	var params = {};
+	if (CODE.length) params.code = CODE;
+	if (MAPS.length) params.maps = MAPS;
+	if (KEYS.length) params.keys = KEYS;
+	window.location.hash = "#"+encodeURIComponent(btoa(JSON.stringify(params)));
+}
+function Load() {
+	var hash = window.location.hash.replace(/#/,"");
+	if (!hash) return;
+	var params = JSON.parse(atob(decodeURIComponent(hash)));
+	if (params.code) SetInput(params.code);
+	if (params.maps) LoadMaps(params.maps);
+	if (params.keys) SetKeys(param.keys);
+	
+	if (!GetOutput()) Decode();
+}
+
+// Main function
+function Decode() {
+	/*
+	// Removing because validation is optional
+	var valid = ValidateKeys();
+	if (!valid[0]) {
+		ErrorElem.innerHTML = "The key at line "+(valid[1]+1)+" does not contain the character '"+valid[3]+"' (index="+valid[2]+")";
+		ErrorElem.style.display = "block";
+		return;
+	} else {
+		ErrorElem.style.display = "none";
+	}*/
+	Save();
+	var CODE = GetInput();
+	var MAPS = GetMaps();
+	var KEYS = GetKeysAsArray();
+	var C = CODE.length, M = MAPS.length, K = KEYS.length;
+	if (!C||!M||!K)return;
+	//console.log(MAPS);
+	for(var m=0,f,t,i,z;m<M;m++){
+		f=MAPS[m].f,t=MAPS[m].t;
+		if(f<0||f>=K||t<0||t>=K)return;
+		f=KEYS[f],t=KEYS[t];
+		for(i=0,z="";i<C;i++)z+=t[f.indexOf(CODE[i])];
+		CODE=z;
+	}
+	SetOutput(CODE);
+}
+
+window.onload = Load;
+</script>
+</html>
