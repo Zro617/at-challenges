@@ -1,13 +1,12 @@
 // ==UserScript==
-// @name         @thisandagain pls explain
-// @namespace    thisandagainPlsExplain
+// @name         thisandagain Summoner
+// @namespace    thisandagainPlsExplainThisPost
 // @version      1.0
-// @description  Adds a magic button to summon thisandagain
+// @description  Adds a button to magically summon thisandagain about a post
 // @author       Zro716
 // @match        https://scratch.mit.edu/discuss/*
 // @grant        none
 // ==/UserScript==
-"use strict";
 
 function Summon(user,postid) {
   if(confirm("Are you sure you want to summon "+user+"?")){
@@ -20,9 +19,9 @@ function Summon(user,postid) {
     xhr.setRequestHeader("X-CSRFToken",csrf);
     xhr.setRequestHeader("X-Requested-With","XMLHttpRequest");
     xhr.onload = function() {
-    if (xhr.status == 200) alert(user + " has been summoned!");
-    else alert("Oops! Can't do that. :/");
-  };
+      if (xhr.status == 200) alert(user + " has been summoned!");
+      else alert("Oops! Can't do that. :/");
+    };
     xhr.send(JSON.stringify({content:comment, parent_id:"", commentee_id:""}));
   }
 }
