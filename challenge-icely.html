@@ -5,6 +5,7 @@
  <style>
 	html {
 		font-family: "Comic Sans MS",sans-serif;
+		font-size: 20px;
 		color: #845500;
 		background-color: #70C5C5;
 	}
@@ -13,6 +14,7 @@
 	}
 	textarea {
 		font-family: "Consolas","Courier New",monospace;
+		font-size: 12px;
 		border-radius:4px;
 		-moz-border-radius:4px;
 		-webkit-border-radius:4px;
@@ -20,18 +22,29 @@
 		background-color: #222;
 		padding: 15px;
 	}
-	div {
+	input.from, input.to {
+		width:24px;
+		margin: 0px 8px;
+	}
+	div.input {
+		margin: 20px 20px;
+	}
+	div.keys {
+		margin: 20px 20px;
+	}
+	div.output {
 		margin: 20px 20px;
 	}
 	div.maps {
+		margin: 20px 20px;
 		position: absolute;
 		left: 780px;
-		top: 110px;
+		top: 125px;
 	}
 	div.error {
 		color:#F00;
 		display: none;
-		font-size: 12px;
+		font-size: 16px;
 		padding: 0px;
 		margin: 10px 0px;
 	}
@@ -53,19 +66,21 @@
 		-moz-border-radius:10px;
 		-webkit-border-radius:10px;
 		padding:5px 10px;
+		margin: 0px 10px;
+		display: inline-block;
 	}
 	button.remove:hover {
 		background-color: #C00;
 	}
 	ol {
-		list-style: normal;
-		list-style-position: inside;
+		list-style: none;
 		font-size: 24px;
 		margin: 0px 10px;
 		padding: 0px;
 	}
 	li {
 		position: relative;
+		left: -20px;
 		margin: 8px 0px;
 		font-size: 16px;
 	}
@@ -85,7 +100,7 @@
 	</div>
 	<div class="maps">Mapping Sequence:<br>
 	<ol id="maps"></ol>
-	<button class="add" onclick="AddMap(1,2,true)">+</button>   <button class="remove" id="clearall" onclick="ClearMaps()" style="display:none">CLEAR</button><br>
+	<button class="add" onclick="AddMap(1,2,true)">+</button>   <button class="remove" id="clearall" onclick="ClearMaps(true)" style="display:none">CLEAR</button><br>
 	</div>
 	<div class="output">Output:<br>
 		<textarea id="output" rows="5" cols="100"></textarea><br>
@@ -122,7 +137,7 @@ function ClearKeys() {
 	KeyElem.value = "";
 }
 function SetKeys(x) {
-	KeyElem.value = "";
+	KeyElem.value = x;
 }
 function SetKeysFromArray(x) {
 	KeyElem.value = x.join("\n");
@@ -140,10 +155,11 @@ function ValidateKeys() {
 	return [true];
 }
 // Map functions
-function ClearMaps() {
+function ClearMaps(decode) {
 	while(MapElem.firstChild)MapElem.removeChild(MapElem.firstChild);
 	document.getElementById("clearall").style.display = "none";
-	Decode();
+	if (decode) Decode();
+	_m=0;
 }
 function RemoveMap(id) {
 	// I really don't know another way to remove a list item like this
@@ -153,18 +169,40 @@ function RemoveMap(id) {
 	Decode();
 }
 function AddMap(a,b,decode) {
-	MapElem.innerHTML += "<li class='item"+_m+"'>From key "+
-	                     "<input type='textbox' class='from' value='"+a+"' style='width:24px' onkeyup='Decode()'></input> to key "+
-						 "<input type='textbox' class='to' value='"+b+"' style='width:24px' onkeyup='Decode()'></input>      "+
-						 "<button class='remove' onclick='RemoveMap("+_m+")' style='display:inline-block'>&#215;</button></li>";
+	var item = document.createElement("li");
+	item.setAttribute("class","item"+_m);
+	var div1 = document.createTextNode("From key");
+	var div2 = document.createTextNode("to key");
+	var txt1 = document.createElement("input");
+	txt1.setAttribute("type","textbox");
+	txt1.setAttribute("class","from");
+	txt1.setAttribute("value",a);
+	txt1.setAttribute("onkeyup","Decode()");
+	var txt2 = document.createElement("input");
+	txt2.setAttribute("type","textbox");
+	txt2.setAttribute("class","to");
+	txt2.setAttribute("value",b);
+	txt2.setAttribute("onkeyup","Decode()");
+	var btn = document.createElement("button");
+	btn.setAttribute("class","remove");
+	btn.setAttribute("id",_m);
+	btn.setAttribute("onclick","RemoveMap(this.id)");
+	btn.appendChild(document.createTextNode("×"));
+	// PUT IT ALL TOGETHER M8
+	item.appendChild(btn);
+	item.appendChild(div1);
+	item.appendChild(txt1);
+	item.appendChild(div2);
+	item.appendChild(txt2);
+	MapElem.appendChild(item);
+	//MapElem.innerHTML += "<li class='item"+_m+"'>From key<input type='textbox' class='from' value='"+a+"' style='width:24px' onkeyup='Decode()'></input> to key<input type='textbox' class='to' value='"+b+"' style='width:24px' onkeyup='Decode()'></input><button class='remove' onclick='RemoveMap("+_m+")' style='display:inline-block'>&#215;</button></li>";
 	_m++;
 	document.getElementById("clearall").style.display = "inline-block";
 	if (decode) Decode();
 }
 function LoadMaps(x) {
-	ClearMaps();
+	ClearMaps(false);
 	for(var m=0;m<x.length;m++)AddMap(x[m].f+1,x[m].t+1,false);
-	Decode();
 }
 function GetMaps() {
 	var chldrn = MapElem.getElementsByTagName("li");
@@ -204,9 +242,9 @@ function Load() {
 	var params = JSON.parse(atob(decodeURIComponent(hash)));
 	if (params.code) SetInput(params.code);
 	if (params.maps) LoadMaps(params.maps);
-	if (params.keys) SetKeys(param.keys);
+	if (params.keys) SetKeys(params.keys);
 	
-	if (!GetOutput()) Decode();
+	Decode();
 }
 
 // Main function
