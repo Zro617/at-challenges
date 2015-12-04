@@ -1,34 +1,111 @@
 <!DOCTYPE html>
 <html>
 <head>
- <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+ <meta http-equiv="Content-Type" content="text/html; charset=utf-8"></meta>
+ <style>
+	html {
+		font-family: "Lucida Console";
+		color: #FFF;
+		background-color: #0a5c8d;
+	}
+	a {
+		color: #DDD;
+	}
+	button {
+		margin: 10px 0px;
+		padding: 8px 32px;
+		font-size: 32px;
+		border-radius: 10px;
+		background-color: #0088FF;
+		color: #FFF;
+	}
+	div.title {
+		position: relative;
+		margin: auto;
+		font-size: 24px;
+	}
+	div.decrypt {
+		position: absolute;
+		left: 15%;
+		top: 150px;
+	}
+	div.encrypt {
+		position: absolute;
+		right: 15%;
+		top: 150px;
+	}
+	div.key {
+		position: absolute;
+		right: 15%;
+		top: 450px;
+	}
+	div.buttons {
+		position: relative;
+		top: 160px;
+	}
+ </style>
 </head>
 <body>
-	<h1>EncloCreations "Challenge": Encoder &amp; Decoder</h1>
-	<h2>Written in JS by <a href="https://scratch.mit.edu/users/Zro716">Zro716</a>(<a href="https://github.com/Zro617/">Zro617</a>)</h2>
-	<div class="decrypt">Decrypted message:
-	<br><textarea id="decrypted" rows="5" cols="100" placeholder="Put your secret message here..."></textarea>
-	<br><button id="encrypt" onclick="encrypt()">Encrypt</button>
-	</div>
-	<div =class="key">Key for message:
-	<br><textarea id="key" rows="5" cols="100" placeholder="A key will be generated here for encrypting."></textarea>
-	<br>
-	</div>
-	<div class="encrypt">Encrypted message:
-	<br><textarea id="encrypted" rows="5" cols="100" placeholder="Put an encrypted message here..."></textarea>
-	<br><button id="decrypt" onclick="decrypt()">Decrypt</button>
+	<center>
+		<h1>EncloCreations "<a href="https://scratch.mit.edu/discuss/topic/169806/">Challenge</a>": Encoder &amp; Decoder</h1>
+		<div>Written in JS by <a href="https://scratch.mit.edu/users/Zro716">Zro716</a> (GH: <a href="https://github.com/Zro617/">Zro617</a>)</div>
+		<div class="buttons">
+			<button id="decrypt" onclick="encrypt()">---&gt;</button><br>
+			<button id="decrypt" onclick="decrypt()">&lt;---</button><br>
+		</div>
+	</center>
+	<div class="decrypt">
+		<div class="title">Decrypted message:</div><br>
+		<textarea id="decrypted" rows="28" cols="50" placeholder="Put your secret message here..."></textarea>
 	</div>
 	
+	<div class="encrypt">
+		<div class="title">Encrypted message:</div><br>
+		<textarea id="encrypted" rows="16" cols="50" placeholder="Put an encrypted message here..."></textarea>
+	</div>
+	<div class="key">
+		<div class="title">Key for message:</div><br>
+		<textarea id="key" rows="8" cols="50" placeholder="A key will be generated here for encrypting."></textarea>
+	</div>
 </body>
-<script>
-/* Code by @Zro716 ( https://scratch.mit.edu/users/Zro716/ )
- * Challenge by @EncloCreations at https://scratch.mit.edu/discuss/topic/169806/
- */
+<script id="global">
 var CHARS = "\n !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
 
 var EncryptedElem = document.getElementById("encrypted"),
 	DecryptedElem = document.getElementById("decrypted"),
 	KeyElem       = document.getElementById("key");
+
+</script>
+<script id="main">
+function ClearEncrypted() {
+	EncryptedElem.value = "";
+}
+function SetEncrypted(x) {
+	EncryptedElem.value = x;
+}
+function GetEncrypted() {
+	return EncryptedElem.value;
+}
+
+function ClearDecrypted() {
+	DecryptedElem.value = "";
+}
+function SetDecrypted(x) {
+	DecryptedElem.value = x;
+}
+function GetDecrypted() {
+	return DecryptedElem.value;
+}
+
+function ClearKey() {
+	KeyElem.value = "";
+}
+function SetKey(x) {
+	KeyElem.value = x;
+}
+function GetKey() {
+	return KeyElem.value;
+}
 
 function parse(m) {
     for (var i=m.length-1,t="",a=[];i>-1;) { t=""+m[i--]+t;if(""+t[0]+t[1]=="0x")a.unshift(t),t=""; }
@@ -36,9 +113,9 @@ function parse(m) {
 }
 
 function decrypt() {
-    var e = EncryptedElem.value, k = KeyElem.value, d = "";
-    if (!e) return alert("No data to decrypt.");
-	if (!k) return alert("Missing key for data.");
+    var e = GetEncrypted(), k = GetKey(), d = "";
+    if (!e) return;
+	if (!k) return;
     e=parse(e);
     while(e.length>k.length)e.pop();
     for (var i=0;i<e.length;i++){
@@ -47,12 +124,13 @@ function decrypt() {
     	e[i]=e[i].substring(2*(k[i]-1),2*k[i]);
     	d+=CHARS[~~e[i]];
     }
-    DecryptedElem.value = d;
+    SetDecrypted(d);
+	save();
 }
 
 function encrypt() {
-	var e = [], k = [], d = DecryptedElem.value;
-	if(!d)return alert("No data to encrypt.");
+	var e = [], k = [], d = GetDecrypted();
+	if (!d) return;
 	for (var i=0,r=Math.random,x,y,z;i<d.length;i++){
 		x=3,y=[],z=~~(3*r());
 		while(x--)y.push(""+~~(100*r()));
@@ -64,9 +142,29 @@ function encrypt() {
 		e.push("0x"+(~~y.join('')).toString(16));
 		k.push(z+1);
 	}
-	EncryptedElem.value = e.join('');
-	KeyElem.value = k.join('');
+	SetEncrypted(e.join(''));
+	SetKey(k.join(''))
+	save();
 }
+</script>
+<script id="init">
+function save() {
+	var params = {};
+	params.enc = GetEncrypted();
+	params.dec = GetDecrypted();
+	params.key = GetKey();
+	window.location.hash = "#"+encodeURIComponent(btoa(JSON.stringify(params)));
+}
+function load() {
+	var hash = window.location.hash.replace(/#/,"");
+	if (!hash) return;
+	var params = JSON.parse(atob(decodeURIComponent(hash)));
+	if (params.enc) SetEncrypted(params.enc);
+	if (params.dec) SetDecrypted(params.dec);
+	if (params.key) SetKey(params.key);
+}
+
+window.onload = load;
 </script>
 <script id="obsolete">
 /*
