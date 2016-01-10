@@ -388,9 +388,9 @@ function GetParams() {
 // Initializer
 function init() {
 	ClearCommands();
-	AddCommand("group",function(o,x){var regex=new RegExp("(\S{1,"+x+"})","g");if(typeof o=="string"){return o.match(regex);}else{for(var i=1,j;i<o.length;i++)for(j=0;j<x&&i<o.length;j++)o[i-1]=""+o[i-1]+o.delete(i);return o;}},1,"Makes groups of x tokens");
-	AddCommand("match",function(o,x){var regex=new RegExp(x,"g");if(typeof o=="string"){return o.match(regex);}else{var i=0,m;while(i<o.length){m=o[i].match(regex);if(m.length)o[i++]=m.join(" ");else o.delete(i);}return o;}},1,"Finds all matches to regex x");
-	AddCommand("remove",function(o,x){var regex=new RegExp(x,"g");if(typeof o=="string"){return o.replace(regex,"");}else{for (var i=0;i<o.length;i++){o[i] = o[i].replace(regex,"");}return o;}},1,"Removes all matches to regex x");
+	AddCommand("group",function(o,x){var regex=new RegExp("(\\S{1,"+x+"})","g");if(typeof o=="string"){return o.match(regex);}else{for(var i=1,j;i<o.length;i++)for(j=0;j<x&&i<o.length;j++)o[i-1]=""+o[i-1]+o.delete(i);return o;}},1,"Makes groups of x tokens");
+	AddCommand("match",function(o,x){var regex=new RegExp("("+x+")","g");if(typeof o=="string"){return o.match(regex);}else{var i=0,m;while(i<o.length){m=o[i].match(regex);if(m.length)o[i++]=m.join(" ");else o.delete(i);}return o;}},1,"Finds all matches to regex x");
+	AddCommand("remove",function(o,x){var regex=new RegExp("("+x+")","g");if(typeof o=="string"){return o.replace(regex,"");}else{for (var i=0;i<o.length;i++){o[i] = o[i].replace(regex,"");}return o;}},1,"Removes all matches to regex x");
 	AddCommand("split",function(o,x){if(typeof o=="string")return o.split(x);else for(var i=o.length,m;i>0;i--){m=o.shift().split(x);o.merge(m);}return o;},1,"Splits at every x");
 	AddCommand("join", function(o,x){if(typeof o=="string")return o.toCharArray().join(x);return o.join(x)},1,"Joins tokens with x");
 	AddCommand("reverse",function(o){if(typeof o=="string")return o.toCharArray().reverse().join("");return o.reverse();},0,"Reverses order of tokens");
