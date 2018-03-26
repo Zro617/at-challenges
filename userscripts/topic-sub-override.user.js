@@ -4,32 +4,31 @@
 // @namespace   ScratchTopicSubscriptionOverride
 // @description Allows you to unfollow closed topics
 // @include     https://scratch.mit.edu/discuss/topic/*
-// @version     1
+// @version     2.0
 // @grant       none
 // ==/UserScript==
 
-var isClosed = !document.getElementsByClassName("markup markItUpEditor").length;
-if (isClosed) {
-  var id = window.location.href.match(/\d+/)[0],
-      csrf = document.cookie.match(/scratchcsrftoken=([a-zA-Z0-9]+)/)[1];
-  if (csrf) { // need to be logged in
-    var btn = document.createElement("button"),
-        div = document.createElement("div"),
-        divParent = document.getElementsByClassName("linkst")[0];
-    btn.setAttribute("class","unfollow-button button grey");
-    btn.setAttribute("title","Unsubscribe to this topic");
-    btn.setAttribute("id",id);
-    btn.onclick = function() {
-      var xhr = new XMLHttpRequest();
-      xhr.open("POST","https://scratch.mit.edu/discuss/subscription/topic/"+id+"/delete/",true);
-      xhr.setRequestHeader("X-CSRFToken",csrf);
-      xhr.onload = function() { alert(xhr.status == 200 ? "Unsubscribed." : "An error occurred.") };
-      xhr.send();
-      div.removeChild(btn);
-    };
-    btn.innerHTML = "Unfollow";
-    div.setAttribute("class","follow-topic top");
-    div.appendChild(btn);
-    divParent.insertBefore(div,divParent.firstChild);
-  }
+const csrf = document.cookie.match(/scratchcsrftoken=([a-zA-Z0-9]+)/)[1]
+
+if (!document.querySelector('.markup.markItUpEditor')) {
+	var btn = document.createElement('button')
+	btn.innerHTML = 'Unsubscribe'
+	btn.setAttribute('class', 'unfollow-button button grey')
+	btn.setAttribute('title', 'Unsubscribe from this topic')
+	
+	var div = document.createElement('div')
+	div.setAttribute('class', 'follow-topic top')
+	
+	btn.addEventListener('click', function() {
+		var id = window.location.href.match(/\d+/)[0]
+		var xhr = new XMLHttpRequest()
+		xhr.open('POST', `https://scratch.mit.edu/discuss/subscription/topic/${id}/delete/`, true)
+		xhr.setRequestHeader('X-CSRFToken', csrf)
+		xhr.send()
+		div.remove()
+    })
+
+	var divParent = document.querySelector('.linkst')
+	div.appendChild(btn)
+	divParent.insertBefore(div, divParent.firstChild)
 }
